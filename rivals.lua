@@ -9,7 +9,6 @@ task.spawn(function()
     while task.wait(1.0) do
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChild("Humanoid")
-        
         if not char or not hum or hum.Health <= 0 then
             VIM:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
             task.wait(0.05)
@@ -26,21 +25,22 @@ task.spawn(function()
         
         if hrp and hum and hum.Health > 0 then
             local needsHealth = hum.Health < hum.MaxHealth
+            local params = OverlapParams.new()
+            params.FilterType = Enum.RaycastFilterType.Exclude
+            params.FilterDescendantsInstances = {char}
             
-            for _, obj in ipairs(workspace:GetChildren()) do
+            local nearbyItems = workspace:GetPartBoundsInRadius(hrp.Position, MAX_DISTANCE, params)
+            
+            for _, obj in ipairs(nearbyItems) do
                 if obj.Name == "_drop" and obj:IsA("BasePart") then
-                    local dist = (hrp.Position - obj.Position).Magnitude
+                    local isHealth = obj:FindFirstChild("Health")
+                    local isAmmo = obj:FindFirstChild("Ammo")
                     
-                    if dist <= MAX_DISTANCE then
-                        local isHealth = obj:FindFirstChild("Health")
-                        local isAmmo = obj:FindFirstChild("Ammo")
-                        
-                        if isAmmo or (isHealth and needsHealth) then
-                            firetouchinterest(hrp, obj, 0)
-                            task.wait(0.05)
-                            firetouchinterest(hrp, obj, 1)
-                            break
-                        end
+                    if isAmmo or (isHealth and needsHealth) then
+                        firetouchinterest(hrp, obj, 0)
+                        task.wait(0.05)
+                        firetouchinterest(hrp, obj, 1)
+                        break
                     end
                 end
             end
