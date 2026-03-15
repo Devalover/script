@@ -2,13 +2,14 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local VIM = game:GetService("VirtualInputManager")
 
-local CHECK_INTERVAL = 0.5
-local MAX_DISTANCE = 250
+local CHECK_INTERVAL = 1.0
+local MAX_DISTANCE = 150
 
 task.spawn(function()
     while task.wait(1.0) do
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChild("Humanoid")
+        
         if not char or not hum or hum.Health <= 0 then
             VIM:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
             task.wait(0.05)
@@ -26,11 +27,7 @@ task.spawn(function()
         if hrp and hum and hum.Health > 0 then
             local needsHealth = hum.Health < hum.MaxHealth
             
-            -- 최적화: GetDescendants 대신 GetChildren을 쓰되 맵 전체를 검사 (가장 확실함)
-            local allObjects = workspace:GetDescendants()
-            
-            for _, obj in ipairs(allObjects) do
-                -- 이름이 "_drop"인 파트만 정밀 타격
+            for _, obj in ipairs(workspace:GetChildren()) do
                 if obj.Name == "_drop" and obj:IsA("BasePart") then
                     local dist = (hrp.Position - obj.Position).Magnitude
                     
@@ -40,10 +37,9 @@ task.spawn(function()
                         
                         if isAmmo or (isHealth and needsHealth) then
                             firetouchinterest(hrp, obj, 0)
-                            task.wait(0.02)
+                            task.wait(0.05)
                             firetouchinterest(hrp, obj, 1)
-                            -- 한 번에 하나만 먹어서 연산량 급증 방지
-                            break 
+                            break
                         end
                     end
                 end
