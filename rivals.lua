@@ -1,50 +1,40 @@
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local VIM = game:GetService("VirtualInputManager")
-
-local CHECK_INTERVAL = 1.0
-local MAX_DISTANCE = 150
+local LP = Players.LocalPlayer
 
 task.spawn(function()
-    while task.wait(1.0) do
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChild("Humanoid")
-        
-        if not char or not hum or hum.Health <= 0 then
-            VIM:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-            task.wait(0.05)
-            VIM:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+    while true do
+        local c = LP.Character
+        local h = c and c:FindFirstChildOfClass("Humanoid")
+        if not c or not h or h.Health <= 0 then
+            VIM:SendKeyEvent(true, 32, false, game)
+            task.wait()
+            VIM:SendKeyEvent(false, 32, false, game)
         end
+        task.wait(0.1)
     end
 end)
 
 task.spawn(function()
     while true do
-        local char = LocalPlayer.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        local hum = char and char:FindFirstChild("Humanoid")
+        local c = LP.Character
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        local h = c and c:FindFirstChildOfClass("Humanoid")
         
-        if hrp and hum and hum.Health > 0 then
-            local needsHealth = hum.Health < hum.MaxHealth
+        if hrp and h and h.Health > 0 then
+            local needsHp = h.Health < h.MaxHealth
+            local world = workspace:GetChildren()
             
-            for _, obj in ipairs(workspace:GetChildren()) do
-                if obj.Name == "_drop" and obj:IsA("BasePart") then
-                    local dist = (hrp.Position - obj.Position).Magnitude
-                    
-                    if dist <= MAX_DISTANCE then
-                        local isHealth = obj:FindFirstChild("Health")
-                        local isAmmo = obj:FindFirstChild("Ammo")
-                        
-                        if isAmmo or (isHealth and needsHealth) then
-                            firetouchinterest(hrp, obj, 0)
-                            task.wait(0.05)
-                            firetouchinterest(hrp, obj, 1)
-                            break
-                        end
+            for i = 1, #world do
+                local o = world[i]
+                if o.Name == "_drop" then
+                    if o:FindFirstChild("Ammo") or (needsHp and o:FindFirstChild("Health")) then
+                        firetouchinterest(hrp, o, 0)
+                        firetouchinterest(hrp, o, 1)
                     end
                 end
             end
         end
-        task.wait(CHECK_INTERVAL)
+        task.wait()
     end
 end)
